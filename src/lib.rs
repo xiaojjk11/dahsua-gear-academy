@@ -54,6 +54,7 @@ pub extern "C" fn init() {
         Player::Program
     };
     debug!("First player: {:?}", first_player);
+
     // Initialize game state
     let mut game_state = GameState {
         pebbles_count: init_data.pebbles_count,
@@ -64,13 +65,10 @@ pub extern "C" fn init() {
         winner: None,
     };
 
-    debug!("First player2: {:?}", first_player);
-
     // Program plays first if it's the first player
     if first_player == Player::Program {
         program_turn(&mut game_state);
     }
-    debug!("First player3: {:?}", first_player);
 
     unsafe {
         PEBBLES_GAME = Some(game_state);
@@ -126,4 +124,3 @@ pub extern "C" fn state() {
     let game_state = unsafe { PEBBLES_GAME.as_ref().expect("Game not initialized") };
     msg::reply(game_state, 0).expect("Failed to reply with game state");
 }
-
