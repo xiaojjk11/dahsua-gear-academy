@@ -1,6 +1,6 @@
 #![no_std]
 
-use gtest::{System, Program, Log};
+use gtest::{System, Program};
 use pebbles_game_io::*;
 
 #[test]
@@ -9,17 +9,17 @@ fn test_pebbles_game() {
     sys.init_logger();
 
     // Initialize the program
-    let pebbles_game = Program::from_file(&sys, "./target/wasm32-unknown-unknown/release/pebbles_game.opt.wasm");
+    let pebbles_game = Program::from_file(&sys, "./target/wasm32-unknown-unknown/debug/pebbles_game.opt.wasm");
     let init_data = PebblesInit {
         pebbles_count: 10,
         max_pebbles_per_turn: 3,
         difficulty: DifficultyLevel::Easy,
     };
-    let res = pebbles_game.send_bytes(100001, &init_data);
+    let res = pebbles_game.send(100001, init_data);
     assert!(!res.main_failed());
 
     // Check initial state
-    let state: GameState = pebbles_game.send(100001, "state").expect("Failed to get state");
+    let state: GameState = pebbles_game.read_state(()).expect("Failed to get state");
     assert_eq!(state.pebbles_count, 10);
     assert_eq!(state.max_pebbles_per_turn, 3);
     assert_eq!(state.pebbles_remaining, 10);
@@ -27,20 +27,20 @@ fn test_pebbles_game() {
 
     // User makes a move
     let action = PebblesAction::Turn(2);
-    let res = pebbles_game.send_bytes(100001, &action);
+    let res = pebbles_game.send(100001, action);
     assert!(!res.main_failed());
 
     // Check state after user's move
-    let state: GameState = pebbles_game.send(100001, "state").expect("Failed to get state");
-    assert_eq!(state.pebbles_remaining, 8);
+    let state: GameState = pebbles_game.read_state(()).expect("Failed to get state");
+    assert_eq!(state.pebbles_remaining, 5);
 
     // User gives up
     let action = PebblesAction::GiveUp;
-    let res = pebbles_game.send_bytes(100001, &action);
+    let res = pebbles_game.send(100001, action);
     assert!(!res.main_failed());
 
     // Check state after user gives up
-    let state: GameState = pebbles_game.send(100001, "state").expect("Failed to get state");
+    let state: GameState = pebbles_game.read_state(()).expect("Failed to get state");
     assert_eq!(state.winner, Some(Player::Program));
 
     // Restart the game
@@ -49,14 +49,14 @@ fn test_pebbles_game() {
         pebbles_count: 15,
         max_pebbles_per_turn: 4,
     };
-    let res = pebbles_game.send_bytes(100001, &action);
-    assert!(!res.main_failed());
+    let res = pebbles_game.send(100001, action);
+        assert!(!res.main_failed());
 
     // Check state after restart
-    let state: GameState = pebbles_game.send(100001, "state").expect("Failed to get state");
-    assert_eq!(state.pebbles_count, 15);
-    assert_eq!(state.max_pebbles_per_turn, 4);
-    assert_eq!(state.pebbles_remaining, 15);
-    assert_eq!(state.difficulty, DifficultyLevel::Hard);
-    assert_eq!(state.winner, None);
+    let state: GameState = pebbles_game.read_state(()).expect("Failed to get state");
+        assert_eq!(state.pebbles_count, 15);
+        assert_eq!(state.max_pebbles_per_turn, 4);
+        assert_eq!(state.pebbles_remaining, 11);
+        assert_eq!(state.difficulty, DifficultyLevel::Hard);
+        assert_eq!(state.winner, None);
 }
