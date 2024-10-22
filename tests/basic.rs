@@ -9,7 +9,7 @@ fn test_pebbles_game() {
     sys.init_logger();
 
     // Initialize the program
-    let pebbles_game = Program::from_file(&sys, "./target/wasm32-unknown-unknown/debug/pebbles_game.opt.wasm");
+    let _ = Program::current(&sys);
     let init_data = PebblesInit {
         pebbles_count: 10,
         max_pebbles_per_turn: 3,
